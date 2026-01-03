@@ -1,65 +1,105 @@
-import Image from "next/image";
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [hasAffirmation, setHasAffirmation] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("rikedom_affirmation");
+    if (saved) {
+      setHasAffirmation(true);
+    }
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="page">
+      <div className="container" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        {/* Header */}
+        <header style={{ textAlign: "center", paddingTop: "var(--space-3xl)" }}>
+          <p className="text-accent mb-md" style={{ fontSize: "0.875rem", letterSpacing: "0.2em", textTransform: "uppercase" }}>
+            Baserad på Napoleon Hills tidlösa visdom
           </p>
+          <h1 style={{ marginBottom: "var(--space-lg)" }}>
+            Sex Steg för <span className="text-accent">Rikedom</span>
+          </h1>
+          <p style={{ maxWidth: "500px", margin: "0 auto" }}>
+            Omvandla din önskan om rikedom till dess ekonomiska motsvarighet
+            genom sex definitiva, praktiska steg.
+          </p>
+        </header>
+
+        {/* Quote */}
+        <blockquote className="quote" style={{ marginTop: "var(--space-3xl)" }}>
+          &ldquo;Vad sinnet kan föreställa sig och tro på, kan det uppnå.&rdquo;
+          <cite className="quote-author">— Napoleon Hill, Think and Grow Rich</cite>
+        </blockquote>
+
+        {/* Steps Preview */}
+        <section style={{ marginTop: "var(--space-2xl)" }}>
+          <div className="card">
+            <h3 className="mb-lg">De Sex Stegen</h3>
+            <ol style={{
+              listStyle: "none",
+              counterReset: "step",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-md)"
+            }}>
+              {[
+                "Fastställ det exakta beloppet du önskar",
+                "Bestäm vad du ger i utbyte",
+                "Sätt en deadline för ditt mål",
+                "Skapa din konkreta plan",
+                "Skriv ditt personliga uttalande",
+                "Läs din affirmation dagligen"
+              ].map((step, i) => (
+                <li
+                  key={i}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "var(--space-md)",
+                    color: "var(--text-secondary)"
+                  }}
+                >
+                  <span
+                    className="text-accent"
+                    style={{
+                      fontFamily: "var(--font-serif)",
+                      fontSize: "1.25rem",
+                      fontWeight: 500,
+                      minWidth: "1.5rem"
+                    }}
+                  >
+                    {i + 1}.
+                  </span>
+                  {step}
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <div style={{ marginTop: "auto", paddingTop: "var(--space-2xl)", paddingBottom: "var(--space-xl)" }}>
+          {hasAffirmation ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-md)" }}>
+              <Link href="/affirmation" className="btn btn-primary btn-lg btn-full">
+                Läs din affirmation
+              </Link>
+              <Link href="/steg/1" className="btn btn-secondary btn-full">
+                Skapa ny affirmation
+              </Link>
+            </div>
+          ) : (
+            <Link href="/steg/1" className="btn btn-primary btn-lg btn-full">
+              Börja din resa
+            </Link>
+          )}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }
