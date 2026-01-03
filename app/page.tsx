@@ -2,15 +2,19 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { getAffirmation } from "@/lib/steps";
 
 export default function Home() {
   const [hasAffirmation, setHasAffirmation] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("rikedom_affirmation");
-    if (saved) {
-      setHasAffirmation(true);
+    async function checkAffirmation() {
+      const saved = await getAffirmation();
+      setHasAffirmation(!!saved);
+      setIsLoaded(true);
     }
+    checkAffirmation();
   }, []);
 
   return (
@@ -84,7 +88,11 @@ export default function Home() {
 
         {/* CTA */}
         <div style={{ marginTop: "auto", paddingTop: "var(--space-2xl)", paddingBottom: "var(--space-xl)" }}>
-          {hasAffirmation ? (
+          {!isLoaded ? (
+            <div className="loading">
+              <div className="spinner" />
+            </div>
+          ) : hasAffirmation ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-md)" }}>
               <Link href="/affirmation" className="btn btn-primary btn-lg btn-full">
                 Läs din affirmation

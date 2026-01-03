@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getAffirmation } from "@/lib/steps";
+import { getAffirmation, deleteAffirmation } from "@/lib/steps";
 
 interface NotificationSettings {
     morningEnabled: boolean;
@@ -35,14 +35,19 @@ export default function SettingsPage() {
     const [hasAffirmation, setHasAffirmation] = useState(false);
     const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>("default");
     const [saved, setSaved] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
-        setSettings(loadSettings());
-        setHasAffirmation(!!getAffirmation());
+        async function loadData() {
+            setSettings(loadSettings());
+            const affirmation = await getAffirmation();
+            setHasAffirmation(!!affirmation);
 
-        if ("Notification" in window) {
-            setNotificationPermission(Notification.permission);
+            if ("Notification" in window) {
+                setNotificationPermission(Notification.permission);
+            }
         }
+        loadData();
     }, []);
 
     const requestNotificationPermission = async () => {
@@ -66,11 +71,12 @@ export default function SettingsPage() {
         setTimeout(() => setSaved(false), 2000);
     };
 
-    const handleDeleteAffirmation = () => {
+    const handleDeleteAffirmation = async () => {
         if (confirm("Är du säker på att du vill radera din affirmation? Detta går inte att ångra.")) {
-            localStorage.removeItem("rikedom_affirmation");
-            localStorage.removeItem("rikedom_reading_log");
+            setIsDeleting(true);
+            await deleteAffirmation();
             setHasAffirmation(false);
+            setIsDeleting(false);
         }
     };
 
@@ -227,8 +233,9 @@ export default function SettingsPage() {
                                 onClick={handleDeleteAffirmation}
                                 className="btn btn-ghost"
                                 style={{ color: "var(--error)" }}
+                                disabled={isDeleting}
                             >
-                                Radera affirmation
+                                {isDeleting ? "Raderar..." : "Radera affirmation"}
                             </button>
                         </div>
                     </section>

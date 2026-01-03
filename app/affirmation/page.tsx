@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getAffirmation, AffirmationData } from "@/lib/steps";
+import {
+    getAffirmation,
+    AffirmationData,
+    logReading,
+    getStreak,
+    hasReadToday
+} from "@/lib/steps";
 
 function getGreeting(): { text: string; emoji: string; period: "morning" | "evening" } {
     const hour = new Date().getHours();
@@ -18,61 +24,6 @@ function getGreeting(): { text: string; emoji: string; period: "morning" | "even
     }
 }
 
-function getStreak(): number {
-    if (typeof window === "undefined") return 0;
-    const log = localStorage.getItem("rikedom_reading_log");
-    if (!log) return 0;
-
-    const readings: string[] = JSON.parse(log);
-    if (readings.length === 0) return 0;
-
-    // Count consecutive days
-    let streak = 0;
-    const today = new Date().toDateString();
-    const yesterday = new Date(Date.now() - 86400000).toDateString();
-
-    // Sort readings by date (newest first)
-    const uniqueDays = [...new Set(readings.map(r => new Date(r).toDateString()))].sort((a, b) =>
-        new Date(b).getTime() - new Date(a).getTime()
-    );
-
-    // Check if we read today or yesterday
-    if (uniqueDays[0] !== today && uniqueDays[0] !== yesterday) {
-        return 0; // Streak broken
-    }
-
-    // Count consecutive days
-    let expectedDate = new Date(uniqueDays[0]);
-    for (const day of uniqueDays) {
-        if (new Date(day).toDateString() === expectedDate.toDateString()) {
-            streak++;
-            expectedDate = new Date(expectedDate.getTime() - 86400000);
-        } else {
-            break;
-        }
-    }
-
-    return streak;
-}
-
-function logReading(): void {
-    const log = localStorage.getItem("rikedom_reading_log");
-    const readings: string[] = log ? JSON.parse(log) : [];
-    readings.push(new Date().toISOString());
-    localStorage.setItem("rikedom_reading_log", JSON.stringify(readings));
-}
-
-function hasReadToday(): boolean {
-    if (typeof window === "undefined") return false;
-    const log = localStorage.getItem("rikedom_reading_log");
-    if (!log) return false;
-
-    const readings: string[] = JSON.parse(log);
-    const today = new Date().toDateString();
-
-    return readings.some(r => new Date(r).toDateString() === today);
-}
-
 export default function AffirmationPage() {
     const [affirmation, setAffirmation] = useState<AffirmationData | null>(null);
     const [greeting, setGreeting] = useState(getGreeting());
@@ -81,11 +32,19 @@ export default function AffirmationPage() {
     const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
-        const saved = getAffirmation();
-        setAffirmation(saved);
-        setStreak(getStreak());
-        setHasRead(hasReadToday());
-        setIsLoaded(true);
+        async function loadData() {
+            const [saved, currentStreak, readToday] = await Promise.all([
+                getAffirmation(),
+                getStreak(),
+                hasReadToday()
+            ]);
+            setAffirmation(saved);
+            setStreak(currentStreak);
+            setHasRead(readToday);
+            setIsLoaded(true);
+        }
+
+        loadData();
 
         // Update greeting every minute
         const interval = setInterval(() => {
@@ -95,10 +54,11 @@ export default function AffirmationPage() {
         return () => clearInterval(interval);
     }, []);
 
-    const handleMarkAsRead = () => {
-        logReading();
+    const handleMarkAsRead = async () => {
+        await logReading(affirmation?.id);
         setHasRead(true);
-        setStreak(getStreak());
+        const newStreak = await getStreak();
+        setStreak(newStreak);
     };
 
     if (!isLoaded) {

@@ -23,6 +23,7 @@ export default function StepPage() {
     const [data, setData] = useState<Partial<AffirmationData>>({});
     const [currentValue, setCurrentValue] = useState("");
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         const savedData = getStepData();
@@ -56,12 +57,13 @@ export default function StepPage() {
         );
     }
 
-    const handleNext = () => {
+    const handleNext = async () => {
         const newData = { ...data, [step.field]: currentValue };
         saveStepData(newData);
 
         if (stepNumber === 5) {
-            // Save final affirmation
+            setIsSaving(true);
+            // Save final affirmation to Supabase
             const affirmation: AffirmationData = {
                 amount: newData.amount || "",
                 exchange: newData.exchange || "",
@@ -70,7 +72,7 @@ export default function StepPage() {
                 statement: currentValue,
                 createdAt: new Date().toISOString()
             };
-            saveAffirmation(affirmation);
+            await saveAffirmation(affirmation);
             clearStepData();
             router.push("/affirmation");
         } else {
@@ -208,15 +210,16 @@ export default function StepPage() {
                     <button
                         onClick={handleBack}
                         className="btn btn-secondary"
+                        disabled={isSaving}
                     >
                         Tillbaka
                     </button>
                     <button
                         onClick={handleNext}
                         className="btn btn-primary"
-                        disabled={!isValid}
+                        disabled={!isValid || isSaving}
                     >
-                        {stepNumber === 5 ? "Slutför" : "Nästa"}
+                        {isSaving ? "Sparar..." : stepNumber === 5 ? "Slutför" : "Nästa"}
                     </button>
                 </nav>
             </div>
