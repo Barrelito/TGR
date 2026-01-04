@@ -1,5 +1,5 @@
 import { createClient } from './supabase';
-import { getDeviceId } from './steps';
+import { getUserId } from './steps';
 
 // De 5 principerna i Självförtroendeformeln
 export const PRINCIPLES = [
@@ -71,13 +71,13 @@ export interface PledgeData {
 // Save pledge to Supabase
 export async function savePledge(data: Partial<PledgeData>): Promise<PledgeData | null> {
     const supabase = createClient();
-    const deviceId = getDeviceId();
+    const userId = await getUserId();
 
     // Check if user already has a pledge
     const { data: existing } = await supabase
         .from('self_confidence_pledges')
         .select('id')
-        .eq('user_id', deviceId)
+        .eq('user_id', userId)
         .single();
 
     if (existing) {
@@ -106,7 +106,7 @@ export async function savePledge(data: Partial<PledgeData>): Promise<PledgeData 
         const { data: inserted, error } = await supabase
             .from('self_confidence_pledges')
             .insert({
-                user_id: deviceId,
+                user_id: userId,
                 principle_1: data.principle_1,
                 principle_2: data.principle_2,
                 principle_3: data.principle_3,
@@ -129,12 +129,12 @@ export async function getPledge(): Promise<PledgeData | null> {
     if (typeof window === "undefined") return null;
 
     const supabase = createClient();
-    const deviceId = getDeviceId();
+    const userId = await getUserId();
 
     const { data, error } = await supabase
         .from('self_confidence_pledges')
         .select('*')
-        .eq('user_id', deviceId)
+        .eq('user_id', userId)
         .single();
 
     if (error || !data) {
@@ -159,19 +159,19 @@ export async function logConfidenceActivity(
     durationMinutes?: number
 ): Promise<void> {
     const supabase = createClient();
-    const deviceId = getDeviceId();
+    const userId = await getUserId();
 
     // Get pledge ID if exists
     const { data: pledge } = await supabase
         .from('self_confidence_pledges')
         .select('id')
-        .eq('user_id', deviceId)
+        .eq('user_id', userId)
         .single();
 
     const { error } = await supabase
         .from('self_confidence_log')
         .insert({
-            user_id: deviceId,
+            user_id: userId,
             pledge_id: pledge?.id,
             log_type: logType,
             duration_minutes: durationMinutes
@@ -192,12 +192,12 @@ export async function getConfidenceStreak(): Promise<number> {
     if (typeof window === "undefined") return 0;
 
     const supabase = createClient();
-    const deviceId = getDeviceId();
+    const userId = await getUserId();
 
     const { data, error } = await supabase
         .from('self_confidence_log')
         .select('logged_at')
-        .eq('user_id', deviceId)
+        .eq('user_id', userId)
         .eq('log_type', 'reading')
         .order('logged_at', { ascending: false });
 
@@ -247,14 +247,14 @@ export async function hasReadConfidenceToday(): Promise<boolean> {
     if (typeof window === "undefined") return false;
 
     const supabase = createClient();
-    const deviceId = getDeviceId();
+    const userId = await getUserId();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const { data, error } = await supabase
         .from('self_confidence_log')
         .select('id')
-        .eq('user_id', deviceId)
+        .eq('user_id', userId)
         .eq('log_type', 'reading')
         .gte('logged_at', today.toISOString())
         .limit(1);
@@ -276,14 +276,14 @@ export async function hasCompletedTimerToday(timerType: 'visualization' | 'menta
     if (typeof window === "undefined") return false;
 
     const supabase = createClient();
-    const deviceId = getDeviceId();
+    const userId = await getUserId();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const { data, error } = await supabase
         .from('self_confidence_log')
         .select('id')
-        .eq('user_id', deviceId)
+        .eq('user_id', userId)
         .eq('log_type', timerType)
         .gte('logged_at', today.toISOString())
         .limit(1);
@@ -302,17 +302,17 @@ export async function hasCompletedTimerToday(timerType: 'visualization' | 'menta
 // Delete pledge
 export async function deletePledge(): Promise<void> {
     const supabase = createClient();
-    const deviceId = getDeviceId();
+    const userId = await getUserId();
 
     await supabase
         .from('self_confidence_pledges')
         .delete()
-        .eq('user_id', deviceId);
+        .eq('user_id', userId);
 
     await supabase
         .from('self_confidence_log')
         .delete()
-        .eq('user_id', deviceId);
+        .eq('user_id', userId);
 
     localStorage.removeItem("rikedom_pledge");
     localStorage.removeItem("rikedom_confidence_log");

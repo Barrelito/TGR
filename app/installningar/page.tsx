@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getAffirmation, deleteAffirmation } from "@/lib/steps";
+import { useAuth } from "@/lib/AuthContext";
 
 interface NotificationSettings {
     morningEnabled: boolean;
@@ -31,6 +32,7 @@ function saveSettings(settings: NotificationSettings): void {
 }
 
 export default function SettingsPage() {
+    const { user } = useAuth();
     const [settings, setSettings] = useState<NotificationSettings>(getDefaultSettings());
     const [hasAffirmation, setHasAffirmation] = useState(false);
     const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>("default");
@@ -94,6 +96,90 @@ export default function SettingsPage() {
                     </Link>
                     <h1>Inställningar</h1>
                 </header>
+
+                {/* Account Section */}
+                <section className="card mb-xl">
+                    <h3 className="mb-lg">Konto</h3>
+
+                    {user ? (
+                        <div>
+                            <div style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "var(--space-md)",
+                                marginBottom: "var(--space-lg)"
+                            }}>
+                                <div style={{
+                                    width: "48px",
+                                    height: "48px",
+                                    borderRadius: "50%",
+                                    background: "var(--accent-muted)",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontSize: "1.25rem"
+                                }}>
+                                    👤
+                                </div>
+                                <div>
+                                    <p style={{ fontWeight: 500, marginBottom: "0.25rem" }}>
+                                        Inloggad
+                                    </p>
+                                    <p style={{
+                                        margin: 0,
+                                        fontSize: "0.875rem",
+                                        color: "var(--text-muted)",
+                                        wordBreak: "break-all"
+                                    }}>
+                                        {user.email}
+                                    </p>
+                                </div>
+                            </div>
+                            <div style={{
+                                background: "rgba(74, 222, 128, 0.1)",
+                                border: "1px solid var(--success)",
+                                borderRadius: "var(--radius-md)",
+                                padding: "var(--space-md)",
+                                marginBottom: "var(--space-lg)"
+                            }}>
+                                <p style={{
+                                    margin: 0,
+                                    color: "var(--success)",
+                                    fontSize: "0.875rem"
+                                }}>
+                                    ✓ Din data synkas automatiskt mellan enheter
+                                </p>
+                            </div>
+                            <Link href="/konto" className="btn btn-secondary btn-full">
+                                Hantera konto
+                            </Link>
+                        </div>
+                    ) : (
+                        <div>
+                            <p style={{ color: "var(--text-secondary)", marginBottom: "var(--space-lg)" }}>
+                                Skapa ett konto för att spara din data permanent och synka mellan enheter.
+                            </p>
+                            <div style={{
+                                background: "rgba(201, 169, 98, 0.1)",
+                                border: "1px solid var(--accent)",
+                                borderRadius: "var(--radius-md)",
+                                padding: "var(--space-md)",
+                                marginBottom: "var(--space-lg)"
+                            }}>
+                                <p style={{
+                                    margin: 0,
+                                    color: "var(--accent)",
+                                    fontSize: "0.875rem"
+                                }}>
+                                    ⚠️ Utan konto kan din data försvinna om du rensar webbläsardata
+                                </p>
+                            </div>
+                            <Link href="/konto" className="btn btn-primary btn-full">
+                                Skapa konto / Logga in
+                            </Link>
+                        </div>
+                    )}
+                </section>
 
                 {/* Notifications Section */}
                 <section className="card mb-xl">

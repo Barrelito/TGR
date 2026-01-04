@@ -72,6 +72,20 @@ export function getDeviceId(): string {
     return deviceId;
 }
 
+// Get user ID - prefers authenticated user, falls back to device_id
+export async function getUserId(): Promise<string> {
+    if (typeof window === "undefined") return "";
+
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (session?.user) {
+        return session.user.id;
+    }
+
+    return getDeviceId();
+}
+
 export function generateStatement(data: Partial<AffirmationData>): string {
     const amount = data.amount ? parseInt(data.amount).toLocaleString("sv-SE") : "[belopp]";
     const deadline = data.deadline
@@ -98,13 +112,13 @@ Jag tror helhjärtat på att jag kommer att uppnå detta mål. Jag ser pengarna 
 // Save affirmation to Supabase
 export async function saveAffirmation(data: AffirmationData): Promise<AffirmationData | null> {
     const supabase = createClient();
-    const deviceId = getDeviceId();
+    const userId = await getUserId();
 
     // Check if user already has an affirmation
     const { data: existing } = await supabase
         .from('affirmations')
         .select('id')
-        .eq('user_id', deviceId)
+        .eq('user_id', userId)
         .single();
 
     if (existing) {
@@ -135,7 +149,7 @@ export async function saveAffirmation(data: AffirmationData): Promise<Affirmatio
         const { data: inserted, error } = await supabase
             .from('affirmations')
             .insert({
-                user_id: deviceId,
+                user_id: userId,
                 amount: parseFloat(data.amount),
                 exchange: data.exchange,
                 deadline: data.deadline,
@@ -160,12 +174,12 @@ export async function getAffirmation(): Promise<AffirmationData | null> {
     if (typeof window === "undefined") return null;
 
     const supabase = createClient();
-    const deviceId = getDeviceId();
+    const userId = await getUserId();
 
     const { data, error } = await supabase
         .from('affirmations')
         .select('*')
-        .eq('user_id', deviceId)
+        .eq('user_id', userId)
         .single();
 
     if (error || !data) {
@@ -188,14 +202,14 @@ export async function getAffirmation(): Promise<AffirmationData | null> {
 // Log a reading
 export async function logReading(affirmationId?: string): Promise<void> {
     const supabase = createClient();
-    const deviceId = getDeviceId();
+    const userId = await getUserId();
     const hour = new Date().getHours();
     const period = hour < 12 ? 'morning' : 'evening';
 
     const { error } = await supabase
         .from('reading_log')
         .insert({
-            user_id: deviceId,
+            user_id: userId,
             affirmation_id: affirmationId,
             period
         });
@@ -215,12 +229,12 @@ export async function getStreak(): Promise<number> {
     if (typeof window === "undefined") return 0;
 
     const supabase = createClient();
-    const deviceId = getDeviceId();
+    const userId = await getUserId();
 
     const { data, error } = await supabase
         .from('reading_log')
         .select('read_at')
-        .eq('user_id', deviceId)
+        .eq('user_id', userId)
         .order('read_at', { ascending: false });
 
     if (error || !data || data.length === 0) {
@@ -268,14 +282,14 @@ export async function hasReadToday(): Promise<boolean> {
     if (typeof window === "undefined") return false;
 
     const supabase = createClient();
-    const deviceId = getDeviceId();
+    const userId = await getUserId();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const { data, error } = await supabase
         .from('reading_log')
         .select('id')
-        .eq('user_id', deviceId)
+        .eq('user_id', userId)
         .gte('read_at', today.toISOString())
         .limit(1);
 
@@ -294,17 +308,17 @@ export async function hasReadToday(): Promise<boolean> {
 // Delete affirmation
 export async function deleteAffirmation(): Promise<void> {
     const supabase = createClient();
-    const deviceId = getDeviceId();
+    const userId = await getUserId();
 
     await supabase
         .from('affirmations')
         .delete()
-        .eq('user_id', deviceId);
+        .eq('user_id', userId);
 
     await supabase
         .from('reading_log')
         .delete()
-        .eq('user_id', deviceId);
+        .eq('user_id', userId);
 
     localStorage.removeItem("rikedom_affirmation");
     localStorage.removeItem("rikedom_reading_log");
