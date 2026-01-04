@@ -3,18 +3,24 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getAffirmation } from "@/lib/steps";
+import { getPledge } from "@/lib/confidence";
 
 export default function Home() {
   const [hasAffirmation, setHasAffirmation] = useState(false);
+  const [hasPledge, setHasPledge] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    async function checkAffirmation() {
-      const saved = await getAffirmation();
-      setHasAffirmation(!!saved);
+    async function checkData() {
+      const [affirmation, pledge] = await Promise.all([
+        getAffirmation(),
+        getPledge()
+      ]);
+      setHasAffirmation(!!affirmation);
+      setHasPledge(!!pledge);
       setIsLoaded(true);
     }
-    checkAffirmation();
+    checkData();
   }, []);
 
   return (
@@ -26,86 +32,109 @@ export default function Home() {
             Baserad på Napoleon Hills tidlösa visdom
           </p>
           <h1 style={{ marginBottom: "var(--space-lg)" }}>
-            Sex Steg för <span className="text-accent">Rikedom</span>
+            Think and Grow <span className="text-accent">Rich</span>
           </h1>
           <p style={{ maxWidth: "500px", margin: "0 auto" }}>
-            Omvandla din önskan om rikedom till dess ekonomiska motsvarighet
-            genom sex definitiva, praktiska steg.
+            Två kraftfulla program för att transformera ditt sinne och uppnå dina mål.
           </p>
         </header>
 
         {/* Quote */}
-        <blockquote className="quote" style={{ marginTop: "var(--space-3xl)" }}>
+        <blockquote className="quote" style={{ marginTop: "var(--space-2xl)" }}>
           &ldquo;Vad sinnet kan föreställa sig och tro på, kan det uppnå.&rdquo;
-          <cite className="quote-author">— Napoleon Hill, Think and Grow Rich</cite>
+          <cite className="quote-author">— Napoleon Hill</cite>
         </blockquote>
 
-        {/* Steps Preview */}
-        <section style={{ marginTop: "var(--space-2xl)" }}>
-          <div className="card">
-            <h3 className="mb-lg">De Sex Stegen</h3>
-            <ol style={{
-              listStyle: "none",
-              counterReset: "step",
-              display: "flex",
-              flexDirection: "column",
-              gap: "var(--space-md)"
-            }}>
-              {[
-                "Fastställ det exakta beloppet du önskar",
-                "Bestäm vad du ger i utbyte",
-                "Sätt en deadline för ditt mål",
-                "Skapa din konkreta plan",
-                "Skriv ditt personliga uttalande",
-                "Läs din affirmation dagligen"
-              ].map((step, i) => (
-                <li
-                  key={i}
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: "var(--space-md)",
-                    color: "var(--text-secondary)"
-                  }}
-                >
-                  <span
-                    className="text-accent"
-                    style={{
-                      fontFamily: "var(--font-serif)",
-                      fontSize: "1.25rem",
-                      fontWeight: 500,
-                      minWidth: "1.5rem"
-                    }}
-                  >
-                    {i + 1}.
-                  </span>
-                  {step}
-                </li>
-              ))}
-            </ol>
+        {/* Program Cards */}
+        {!isLoaded ? (
+          <div className="loading" style={{ marginTop: "var(--space-2xl)" }}>
+            <div className="spinner" />
           </div>
-        </section>
+        ) : (
+          <section style={{ marginTop: "var(--space-2xl)" }}>
+            {/* Rikedom Program */}
+            <div className="card program-card" style={{ marginBottom: "var(--space-lg)" }}>
+              <div className="program-card-header">
+                <span className="program-icon">📈</span>
+                <div>
+                  <h3 style={{ marginBottom: "0.25rem" }}>Sex Steg för Rikedom</h3>
+                  <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--text-secondary)" }}>
+                    Omvandla din önskan till ekonomisk verklighet
+                  </p>
+                </div>
+              </div>
+              <div className="program-card-content">
+                <ul className="program-features">
+                  <li>✓ Definiera ditt exakta mål</li>
+                  <li>✓ Skapa din personliga affirmation</li>
+                  <li>✓ Daglig läsning med streak</li>
+                </ul>
+              </div>
+              <div className="program-card-actions">
+                {hasAffirmation ? (
+                  <>
+                    <Link href="/affirmation" className="btn btn-primary btn-full">
+                      📖 Läs din affirmation
+                    </Link>
+                    <Link href="/steg/1" className="btn btn-ghost" style={{ marginTop: "var(--space-sm)", fontSize: "0.875rem" }}>
+                      Skapa ny affirmation
+                    </Link>
+                  </>
+                ) : (
+                  <Link href="/steg/1" className="btn btn-primary btn-full">
+                    Börja programmet →
+                  </Link>
+                )}
+              </div>
+            </div>
 
-        {/* CTA */}
-        <div style={{ marginTop: "auto", paddingTop: "var(--space-2xl)", paddingBottom: "var(--space-xl)" }}>
-          {!isLoaded ? (
-            <div className="loading">
-              <div className="spinner" />
+            {/* Självförtroende Program */}
+            <div className="card program-card">
+              <div className="program-card-header">
+                <span className="program-icon">💪</span>
+                <div>
+                  <h3 style={{ marginBottom: "0.25rem" }}>Min Plan för Självförtroende</h3>
+                  <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--text-secondary)" }}>
+                    Bygg mental styrka och orubblig tro på dig själv
+                  </p>
+                </div>
+              </div>
+              <div className="program-card-content">
+                <ul className="program-features">
+                  <li>✓ 5 kraftfulla principer</li>
+                  <li>✓ 30 min visualisering</li>
+                  <li>✓ 10 min mental träning</li>
+                </ul>
+              </div>
+              <div className="program-card-actions">
+                {hasPledge ? (
+                  <>
+                    <Link href="/sjalvfortroende" className="btn btn-primary btn-full">
+                      💪 Öppna programmet
+                    </Link>
+                    <Link href="/sjalvfortroende/steg/1" className="btn btn-ghost" style={{ marginTop: "var(--space-sm)", fontSize: "0.875rem" }}>
+                      Skapa ny plan
+                    </Link>
+                  </>
+                ) : (
+                  <Link href="/sjalvfortroende/steg/1" className="btn btn-primary btn-full">
+                    Börja programmet →
+                  </Link>
+                )}
+              </div>
             </div>
-          ) : hasAffirmation ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-md)" }}>
-              <Link href="/affirmation" className="btn btn-primary btn-lg btn-full">
-                Läs din affirmation
-              </Link>
-              <Link href="/steg/1" className="btn btn-secondary btn-full">
-                Skapa ny affirmation
-              </Link>
-            </div>
-          ) : (
-            <Link href="/steg/1" className="btn btn-primary btn-lg btn-full">
-              Börja din resa
-            </Link>
-          )}
+          </section>
+        )}
+
+        {/* Settings Link */}
+        <div style={{ marginTop: "auto", paddingTop: "var(--space-xl)", paddingBottom: "var(--space-xl)", textAlign: "center" }}>
+          <Link
+            href="/installningar"
+            className="btn btn-ghost"
+            style={{ fontSize: "0.875rem" }}
+          >
+            ⚙️ Inställningar
+          </Link>
         </div>
       </div>
     </div>
